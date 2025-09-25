@@ -49,7 +49,7 @@ namespace CustomKnight
             }
             // basic dung trail
             var action = HC.FindGameObjectInChildren("Dung").LocateMyFSM("Control").GetAction<SpawnObjectFromGlobalPoolOverTime>("Equipped", 0);
-            var prefab = UnityEngine.Object.Instantiate(action.gameObject.Value);
+            var prefab = action.gameObject.Value;
             UnityEngine.Object.DontDestroyOnLoad(prefab);
             prefab.SetActive(false);
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -60,7 +60,7 @@ namespace CustomKnight
 
             // dung cloud for spore shroom
             var action2 = HC.LocateMyFSM("Spell Control").GetAction<SpawnObjectFromGlobalPool>("Dung Cloud", 0);
-            var prefab2 = UnityEngine.Object.Instantiate(action2.gameObject.Value);
+            var prefab2 = action2.gameObject.Value;
             UnityEngine.Object.DontDestroyOnLoad(prefab2);
             prefab2.SetActive(false);
 #pragma warning disable CS0618 // Type or member is obsolete
