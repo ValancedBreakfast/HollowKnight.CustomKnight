@@ -29,11 +29,12 @@ namespace CustomKnight
             }
         }
 
+        private bool enableFilter = true;
+        private Texture2D dungTex = null;
         public override void ApplyTexture(Texture2D tex)
         {
             var HC = HeroController.instance.gameObject;
             var Dung = HC.FindGameObjectInChildren("Dung");
-            var enableFilter = true;
             var skin = SkinManager.GetCurrentSkin() as ISupportsConfig;
             if (skin != null)
             {
@@ -47,35 +48,29 @@ namespace CustomKnight
             {
                 mat.mainTexture = tex;
             }
-            // basic dung trail
-            var action = HC.FindGameObjectInChildren("Dung").LocateMyFSM("Control").GetAction<SpawnObjectFromGlobalPoolOverTime>("Equipped", 0);
-            var prefab = action.gameObject.Value;
-            UnityEngine.Object.DontDestroyOnLoad(prefab);
-            prefab.SetActive(false);
-#pragma warning disable CS0618 // Type or member is obsolete
-            prefab.FindGameObjectInChildren("Pt Normal").GetComponent<ParticleSystem>().startColor = enableFilter ? DungColor : new Color(1, 1, 1, 1);
-#pragma warning restore CS0618 // Type or member is obsolete
-            prefab.FindGameObjectInChildren("Pt Normal").GetComponent<ParticleSystemRenderer>().material.mainTexture = tex;
-            action.gameObject.Value = prefab;
 
-            // dung cloud for spore shroom
-            var action2 = HC.LocateMyFSM("Spell Control").GetAction<SpawnObjectFromGlobalPool>("Dung Cloud", 0);
-            var prefab2 = action2.gameObject.Value;
-            UnityEngine.Object.DontDestroyOnLoad(prefab2);
-            prefab2.SetActive(false);
-#pragma warning disable CS0618 // Type or member is obsolete
-            prefab2.FindGameObjectInChildren("Pt Deep").GetComponent<ParticleSystem>().startColor = enableFilter ? DungColor : new Color(1, 1, 1, 1);
-#pragma warning restore CS0618 // Type or member is obsolete
-            prefab2.FindGameObjectInChildren("Pt Deep").GetComponent<ParticleSystemRenderer>().material.mainTexture = tex;
-#pragma warning disable CS0618 // Type or member is obsolete
-            prefab2.FindGameObjectInChildren("Pt Normal").GetComponent<ParticleSystem>().startColor = enableFilter ? DungColor : new Color(1, 1, 1, 1);
-#pragma warning restore CS0618 // Type or member is obsolete
-            prefab2.FindGameObjectInChildren("Pt Normal").GetComponent<ParticleSystemRenderer>().material.mainTexture = tex;
-            action2.gameObject.Value = prefab2;
-            // dung cloud for spore shroom unn
-            var action3 = HC.LocateMyFSM("Spell Control").GetAction<SpawnObjectFromGlobalPool>("Dung Cloud 2", 0);
-            action3.gameObject.Value = prefab2;
+            dungTex = tex;
+            // apply tex and color to basic dung trail & dung cloud for spore shroom
+            On.HutongGames.PlayMaker.FsmState.OnEnter += ApplyTexToDungCloud;
+        }
 
+        private void ApplyTexToDungCloud(On.HutongGames.PlayMaker.FsmState.orig_OnEnter orig, HutongGames.PlayMaker.FsmState self)
+        {
+            if ((self.Fsm.GameObject.name.StartsWith("Knight Dung Trail") && self.Fsm.Name == "Control" && self.Name == "Init")
+                || (self.Fsm.GameObject.name.StartsWith("Knight Dung Cloud") && self.Fsm.Name == "Control" && self.Name == "Normal"))
+            {
+                var pt = self.Fsm.GetFsmGameObject("Pt Normal").Value;
+                pt.GetComponent<ParticleSystem>().startColor = enableFilter ? DungColor : new Color(1, 1, 1, 1);
+                pt.GetComponent<ParticleSystemRenderer>().material.mainTexture = dungTex;
+            }
+            else if (self.Fsm.GameObject.name.StartsWith("Knight Dung Cloud") && self.Fsm.Name == "Control" && self.Name == "Deep")
+            {
+                var pt = self.Fsm.GetFsmGameObject("Pt Deep").Value;
+                pt.GetComponent<ParticleSystem>().startColor = enableFilter ? DungColor : new Color(1, 1, 1, 1);
+                pt.GetComponent<ParticleSystemRenderer>().material.mainTexture = dungTex;
+            }
+
+            orig(self);
         }
     }
 }
